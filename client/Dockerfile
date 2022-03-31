@@ -11,7 +11,7 @@ RUN apt install -y netcat
 RUN pip install --upgrade pip
 COPY ./requirements.txt /usr/src/app/requirements.txt
 RUN pip install -r requirements.txt
-RUN pip install postgres.client
+RUN mkdir /usr/src/app/logs/
 
 COPY . /usr/src/app/
 

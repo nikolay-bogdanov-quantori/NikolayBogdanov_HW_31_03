@@ -1,4 +1,5 @@
-from __init__ import Base, Heroes, Motos, Stories, Battles, get_sqlalchemy_engine
+from __init__ import  get_sqlalchemy_engine
+from model import Base, Heroes, Motos, Stories, Battles, TABLES_NAMES
 from sqlalchemy.orm import sessionmaker
 import argparse
 import logging
@@ -7,24 +8,27 @@ import os
 
 
 def create_and_fill_db_if_not_exists():
-    logger_create_db_if_not_exists = logging.getLogger("manage.create_db_if_not_exists")
-    try:
-        logger_create_db_if_not_exists.info("checking if DB exists")
-        psycopg2.connect(os.getenv("DATABASE_URL"))
-    except:
-        logger_create_db_if_not_exists.info("DB not found, trying to create")
-        create_db()
-        fill_db()
-    else:
+    logger_create_db_if_not_exists = logging.getLogger("manage.create_tables_if_not_exist")
+    logger_create_db_if_not_exists.info("checking if tables exist")
+    with psycopg2.connect(os.getenv("DATABASE_URL")) as conn:
+        cur = conn.cursor()
+        cur.execute(f"select * from information_schema.tables where table_name in {TABLES_NAMES}")
+        tables_count = cur.rowcount
+
+    if tables_count == len(TABLES_NAMES):
         logger_create_db_if_not_exists.info("Connected to existing DB")
+    else:
+        logger_create_db_if_not_exists.info("Tables not found, trying to create")
+        create_tables()
+        fill_db()
 
 
-def create_db():
-    logger_create_db = logging.getLogger("manage.create_db")
-    logger_create_db.info("creating DB")
+def create_tables():
+    logger_create_tables = logging.getLogger("manage.create_db")
+    logger_create_tables.info("creating model tables")
     engine = get_sqlalchemy_engine()
     Base.metadata.create_all(engine)
-    logger_create_db.info("DB was created")
+    logger_create_tables.info("model tables were created")
 
 
 def fill_db():
@@ -135,8 +139,8 @@ db_check_parser = subparsers.add_parser('check_and_fill',
                                         help='checks if DB exists, if not, creates it and fills with predefined data')
 db_check_parser.set_defaults(func=create_and_fill_db_if_not_exists)
 
-create_parser = subparsers.add_parser('create_db',  help='create new db')
-create_parser.set_defaults(func=create_db)
+create_parser = subparsers.add_parser('create_tables',  help='create model tables in db')
+create_parser.set_defaults(func=create_tables)
 #
 fill_parser = subparsers.add_parser('fill_db',  help='fill existing DB with predefined data')
 fill_parser.set_defaults(func=fill_db)

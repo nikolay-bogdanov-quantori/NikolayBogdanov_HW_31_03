@@ -1,5 +1,6 @@
 from sqlalchemy import Table, Column, Integer, String, Date, ForeignKey, Identity
 from sqlalchemy.orm import declarative_base, relationship
+TABLES_NAMES = tuple(("battles", "heroes", "motos", "stories"))
 
 Base = declarative_base()
 
