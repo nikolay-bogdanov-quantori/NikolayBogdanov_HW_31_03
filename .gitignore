@@ -1,0 +1,6 @@
+/.ipynb_checkpoints/
+/notebook.ipynb
+
+*.log
+/utils
+/client/__pycache__/
